@@ -9,7 +9,7 @@ export default function SectionHead({ code, eyebrow, title, children, aside }) {
         <Eyebrow code={code}>{eyebrow}</Eyebrow>
       </Reveal>
       <div className="section-head__main">
-        <Reveal as="h2" className="h2" delay={80}>
+        <Reveal as="h2" className="h2" variant="mask" delay={80}>
           {title}
         </Reveal>
         {children && (

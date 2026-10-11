@@ -66,6 +66,19 @@
   box-sizing: border-box;
 }
 
+/* Lenis handles smooth scrolling when it is running. */
+html.lenis-on {
+  scroll-behavior: auto;
+}
+html.lenis-on body {
+  overscroll-behavior: none;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 html {
   scroll-behavior: smooth;
   scroll-padding-top: var(--nav-h);
@@ -278,29 +291,15 @@ textarea {
 }
 
 /* ---------- Motion: stack up + line draw ---------- */
-.reveal {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity var(--dur) var(--ease) var(--delay, 0ms), transform var(--dur) var(--ease) var(--delay, 0ms);
-}
-.reveal.is-in {
-  opacity: 1;
-  transform: none;
-}
 
 .rule {
   display: block;
   height: 1px;
   background: var(--line-2);
-  transform: scaleX(0);
   transform-origin: left;
-  transition: transform 1200ms var(--ease);
 }
 .rule--accent {
   background: var(--signal);
-}
-.rule.is-in {
-  transform: scaleX(1);
 }
 
 /* ---------- Nav ---------- */
@@ -310,7 +309,11 @@ textarea {
   z-index: 50;
   height: var(--nav-h);
   border-bottom: 1px solid transparent;
-  transition: background 400ms var(--ease), border-color 400ms var(--ease), backdrop-filter 400ms;
+  transition: background 400ms var(--ease), border-color 400ms var(--ease), backdrop-filter 400ms,
+    transform 700ms var(--ease);
+}
+.nav--hidden {
+  transform: translateY(-100%);
 }
 .nav--solid,
 .nav--open {
@@ -479,14 +482,6 @@ textarea {
   height: 100%;
   object-fit: cover;
   filter: saturate(0.7) contrast(1.05);
-  transform: scale(1.04);
-  animation: film-in 2400ms var(--ease) both;
-}
-@keyframes film-in {
-  from {
-    opacity: 0;
-    transform: scale(1.12);
-  }
 }
 .hero__shade {
   position: absolute;
@@ -554,26 +549,26 @@ textarea {
 }
 .hero__title .line > span {
   display: inline-block;
-  animation: rise 1400ms var(--ease) both;
-}
-.hero__title .line:nth-child(2) > span {
-  animation-delay: 160ms;
-}
-@keyframes rise {
-  from {
-    transform: translateY(105%);
-  }
 }
 
 .hero__foot {
   margin-top: 36px;
   padding-top: 24px;
-  border-top: 1px solid var(--line-2);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 32px;
   align-items: end;
-  animation: fade-up 1200ms var(--ease) 500ms both;
+  position: relative;
+  --rule: 1;
+}
+.hero__foot::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: var(--line-2);
+  transform: scaleX(var(--rule));
+  transform-origin: left;
 }
 @keyframes fade-up {
   from {
@@ -612,7 +607,6 @@ textarea {
   display: grid;
   place-items: center;
   color: rgba(var(--ink), 0.55);
-  animation: fade-up 1200ms var(--ease) 800ms both;
 }
 .hero__badge > * {
   grid-area: 1 / 1;
@@ -717,6 +711,7 @@ textarea {
 }
 .iline {
   position: relative;
+  --p: 0;
 }
 .iline__track {
   position: absolute;
@@ -853,8 +848,7 @@ textarea {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.01);
-  transition: transform 1200ms var(--ease), filter 900ms var(--ease);
+  transition: scale 1200ms var(--ease), filter 900ms var(--ease);
 }
 .service-card__body {
   padding: 22px 20px 20px;
@@ -879,7 +873,7 @@ textarea {
   transition: transform 400ms var(--ease);
 }
 .service-card__link:hover .service-card__media img {
-  transform: scale(1.06);
+  scale: 1.05;
   filter: none;
 }
 .service-card__link:hover .service-card__foot {
@@ -1058,10 +1052,10 @@ textarea {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 1200ms var(--ease);
+  transition: scale 1200ms var(--ease);
 }
 .gallery__item:hover img {
-  transform: scale(1.04);
+  scale: 1.04;
 }
 .gallery__cap {
   position: absolute;
@@ -1195,6 +1189,11 @@ textarea {
   place-items: center;
   color: var(--line-2);
   margin: 0 22px 40px 0;
+}
+.portrait-frame__img {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
 }
 .portrait-frame img {
   width: 100%;

@@ -1,4 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
+import { ScrollTrigger, reducedMotion } from '../motion/gsap'
+import { useLenis } from '../motion/SmoothScroll'
 import { nav } from '../data/content'
 import mark from '../assets/jazak-mark.png'
 
@@ -15,7 +18,28 @@ function useTheme() {
       // Storage can be blocked; the theme still applies for this visit.
     }
   }, [theme])
-  return [theme, () => setTheme((t) => (t === 'light' ? 'dark' : 'light'))]
+  const toggle = (e) => {
+    const next = theme === 'light' ? 'dark' : 'light'
+    if (!document.startViewTransition || reducedMotion()) {
+      setTheme(next)
+      return
+    }
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect()
+    const x = left + width / 2
+    const y = top + height / 2
+    const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
+    const vt = document.startViewTransition(() => {
+      flushSync(() => setTheme(next))
+      document.documentElement.dataset.theme = next
+    })
+    vt.ready.then(() =>
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+        { duration: 900, easing: 'cubic-bezier(0.6, 0, 0.2, 1)', pseudoElement: '::view-transition-new(root)' },
+      ),
+    )
+  }
+  return [theme, toggle]
 }
 
 function ThemeToggle({ theme, onToggle }) {
@@ -47,6 +71,24 @@ export default function Nav() {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState('')
   const [theme, toggleTheme] = useTheme()
+  const [hidden, setHidden] = useState(false)
+  const lenis = useLenis()
+  const openRef = useRef(open)
+  openRef.current = open
+
+  // Slides away while reading down the page, returns on the first scroll up.
+  useEffect(() => {
+    const st = ScrollTrigger.create({
+      start: 0,
+      end: 'max',
+      onUpdate: (self) => {
+        if (openRef.current) return
+        const y = self.scroll()
+        setHidden(y > window.innerHeight * 0.9 && self.direction === 1)
+      },
+    })
+    return () => st.kill()
+  }, [])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -72,10 +114,12 @@ export default function Nav() {
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
-  }, [open])
+    if (lenis) open ? lenis.stop() : lenis.start()
+    if (open) setHidden(false)
+  }, [open, lenis])
 
   return (
-    <header className={`nav ${scrolled ? 'nav--solid' : ''} ${open ? 'nav--open' : ''}`}>
+    <header className={`nav ${scrolled ? 'nav--solid' : ''} ${open ? 'nav--open' : ''} ${hidden ? 'nav--hidden' : ''}`}>
       <div className="nav__inner container">
         <a href="#top" className="brand" aria-label="JAZAK, back to top" onClick={() => setOpen(false)}>
           <img src={mark} alt="" width="32" height="32" />

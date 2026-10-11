@@ -9,6 +9,7 @@ import About from './components/About'
 import Values from './components/Values'
 import Quote from './components/Quote'
 import Footer from './components/Footer'
+import SmoothScroll from './motion/SmoothScroll'
 
 export default function App() {
   // Service cards and material "Enquire" links prefill the quote form.
@@ -16,7 +17,7 @@ export default function App() {
   const pick = (p) => setPrefill({ ...p, at: Date.now() })
 
   return (
-    <>
+    <SmoothScroll>
       <a className="skip" href="#contact">Skip to quotation form</a>
       <Nav />
       <main>
@@ -30,6 +31,6 @@ export default function App() {
         <Quote prefill={prefill} />
       </main>
       <Footer />
-    </>
+    </SmoothScroll>
   )
 }

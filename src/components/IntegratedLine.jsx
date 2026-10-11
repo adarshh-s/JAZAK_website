@@ -1,23 +1,68 @@
+import { useRef, useState } from 'react'
 import { integrated } from '../data/content'
-import { useCountUp, useInView, useScrollProgress } from '../hooks/motion'
+import { gsap, useGSAP, reducedMotion } from '../motion/gsap'
 import { Diamond } from './Graphics'
 import SectionHead from './SectionHead'
 
-function Fact({ value, label, start, delay }) {
-  const n = useCountUp(value, start, value > 100 ? 1400 : 900)
-  return (
-    <div className={`fact reveal ${start ? 'is-in' : ''}`} style={{ '--delay': `${delay}ms` }}>
-      <span className="fact__value tabular">{n}</span>
-      <span className="fact__label">{label}</span>
-    </div>
-  )
-}
-
 export default function IntegratedLine() {
-  const [lineRef, progress] = useScrollProgress(0.9, 0.45)
-  const [factsRef, factsIn] = useInView({ threshold: 0.4 })
+  const boardRef = useRef(null)
+  const factsRef = useRef(null)
   const stages = integrated.stages
+  const [reached, setReached] = useState(reducedMotion() ? stages.length : 1)
   const [eyebrowCode, ...rest] = integrated.eyebrow.split(' · ')
+
+  useGSAP(
+    () => {
+      const line = boardRef.current.querySelector('.iline')
+      if (reducedMotion()) {
+        gsap.set(line, { '--p': 1 })
+        return
+      }
+      // The red line is scrubbed by scroll and lights each stage as it arrives.
+      gsap.fromTo(
+        line,
+        { '--p': 0 },
+        {
+          '--p': 1,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: boardRef.current,
+            start: 'top 80%',
+            end: 'bottom 55%',
+            scrub: 0.8,
+            onUpdate: (self) => {
+              const n = Math.floor(self.progress * (stages.length - 1) + 0.02) + 1
+              setReached((r) => (r === n ? r : n))
+            },
+          },
+        },
+      )
+
+      // Facts: rise in sequence, then the figures roll up once and hold still.
+      const facts = gsap.utils.toArray('.fact', factsRef.current)
+      gsap.from(facts, {
+        y: 40,
+        autoAlpha: 0,
+        stagger: 0.14,
+        duration: 1.1,
+        scrollTrigger: { trigger: factsRef.current, start: 'top 85%', once: true },
+      })
+      facts.forEach((fact) => {
+        const el = fact.querySelector('.fact__value')
+        const target = Number(el.dataset.value)
+        const counter = { v: target > 1000 ? target - 40 : 0 }
+        el.textContent = Math.round(counter.v)
+        gsap.to(counter, {
+          v: target,
+          duration: target > 100 ? 1.6 : 1.1,
+          ease: 'power3.out',
+          onUpdate: () => (el.textContent = Math.round(counter.v)),
+          scrollTrigger: { trigger: factsRef.current, start: 'top 85%', once: true },
+        })
+      })
+    },
+    { dependencies: [] },
+  )
 
   return (
     <section id="integrated" className="section section--integrated">
@@ -26,22 +71,21 @@ export default function IntegratedLine() {
           {integrated.supporting}
         </SectionHead>
 
-        <div className="line-board" ref={lineRef}>
+        <div className="line-board" ref={boardRef}>
           <p className="mono line-board__tag">
             <span className="accent">{rest.join(' · ')}</span> · Drawn as you scroll
           </p>
-          <div className="iline" style={{ '--p': progress }}>
+          <div className="iline">
             <div className="iline__track" aria-hidden="true">
               <span className="iline__fill" />
             </div>
             <ol className="iline__stages">
               {stages.map((s, i) => {
-                const at = i / (stages.length - 1)
-                const reached = progress >= at - 0.001
+                const on = i < reached
                 return (
-                  <li key={s.title} className={`stage ${reached ? 'is-reached' : ''}`}>
+                  <li key={s.title} className={`stage ${on ? 'is-reached' : ''}`}>
                     <span className="stage__node">
-                      <Diamond size={14} filled={i === stages.length - 1 ? reached : false} />
+                      <Diamond size={14} filled={i === stages.length - 1 ? on : false} />
                     </span>
                     <span className="mono stage__tag">{s.tag}</span>
                     <h3 className="h3 stage__title">{s.title}</h3>
@@ -60,8 +104,13 @@ export default function IntegratedLine() {
         </div>
 
         <div className="facts" ref={factsRef}>
-          {integrated.facts.map((f, i) => (
-            <Fact key={f.label} {...f} start={factsIn} delay={i * 120} />
+          {integrated.facts.map((f) => (
+            <div key={f.label} className="fact">
+              <span className="fact__value tabular" data-value={f.value}>
+                {f.value}
+              </span>
+              <span className="fact__label">{f.label}</span>
+            </div>
           ))}
         </div>
       </div>

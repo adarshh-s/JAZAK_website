@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { hero } from '../data/content'
 import { Arrow, Contours, Diamond, SawtoothRing } from './Graphics'
-import { prefersReducedMotion } from '../hooks/motion'
+import { gsap, useGSAP, reducedMotion } from '../motion/gsap'
 import mark from '../assets/jazak-mark.png'
 
 const FILM = '/media/hero-film.mp4'
@@ -9,16 +9,43 @@ const POSTER = '/media/hero-poster.jpg'
 
 export default function Hero() {
   const videoRef = useRef(null)
+  const rootRef = useRef(null)
   const [playing, setPlaying] = useState(true)
 
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
-    if (prefersReducedMotion()) {
+    if (reducedMotion()) {
       v.pause()
       setPlaying(false)
     }
   }, [])
+
+  useGSAP(
+    () => {
+      if (reducedMotion()) return
+      // Intro: film settles, headline lines rise out of their masks, then the details.
+      gsap
+        .timeline({ defaults: { ease: 'build' } })
+        .from('.hero__video', { scale: 1.18, autoAlpha: 0, duration: 2.4 })
+        .from('.hero__title .line > span', { yPercent: 108, duration: 1.4, stagger: 0.14 }, 0.3)
+        .from('.hero__foot', { autoAlpha: 0, y: 24, duration: 1.1 }, 1.0)
+        .from('.hero__foot', { '--rule': 0, duration: 1.4 }, 1.0)
+        .from('.hero__badge', { autoAlpha: 0, scale: 0.8, rotate: -40, duration: 1.4 }, 1.1)
+        .from('.hero__bar', { autoAlpha: 0, duration: 1 }, 1.4)
+
+      // Scrolling away: the film pushes in and dims; text fades in place (no text parallax).
+      const st = { trigger: rootRef.current, start: 'top top', end: 'bottom top', scrub: true }
+      gsap.to('.hero__media', { scale: 1.12, ease: 'none', scrollTrigger: st })
+      gsap.to('.hero__shade', { opacity: 1, backgroundColor: 'rgba(15,14,14,0.55)', ease: 'none', scrollTrigger: st })
+      gsap.to(['.hero__body', '.hero__bar', '.hero__badge'], {
+        autoAlpha: 0,
+        ease: 'none',
+        scrollTrigger: { ...st, end: '60% top' },
+      })
+    },
+    { scope: rootRef },
+  )
 
   const toggleFilm = () => {
     const v = videoRef.current
@@ -33,7 +60,7 @@ export default function Hero() {
   }
 
   return (
-    <section id="top" className="hero" aria-label="Introduction">
+    <section id="top" ref={rootRef} className="hero" aria-label="Introduction">
       <div className="hero__media" aria-hidden="true">
         <video
           ref={videoRef}

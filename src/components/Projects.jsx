@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { projects } from '../data/content'
-import Reveal from './Reveal'
+import Reveal, { useParallax } from './Reveal'
+import { Flip, gsap, ScrollTrigger, reducedMotion } from '../motion/gsap'
 import SectionHead from './SectionHead'
 import { Arrow, Contours } from './Graphics'
 
@@ -24,6 +25,34 @@ export default function Projects() {
   const [hover, setHover] = useState(null)
   const [showAll, setShowAll] = useState(false)
   const LIMIT = 7
+  const sectionRef = useRef(null)
+  const galleryRef = useRef(null)
+  const flipState = useRef(null)
+
+  useParallax(sectionRef, '.gallery__frame img', 6)
+
+  // Record tile positions before a filter change so Flip can glide them into place.
+  const withFlip = (update) => {
+    if (!reducedMotion() && galleryRef.current) {
+      flipState.current = Flip.getState(galleryRef.current.querySelectorAll('.gallery__item'))
+    }
+    update()
+  }
+
+  useLayoutEffect(() => {
+    const state = flipState.current
+    if (!state) return
+    flipState.current = null
+    Flip.from(state, {
+      targets: galleryRef.current.querySelectorAll('.gallery__item'),
+      duration: 0.9,
+      ease: 'build',
+      scale: true,
+      onEnter: (els) =>
+        gsap.fromTo(els, { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.06, delay: 0.15 }),
+      onComplete: () => ScrollTrigger.refresh(),
+    })
+  }, [filter, showAll])
 
   const coast = useMemo(
     () => QATAR.map((p, i) => `${i ? 'L' : 'M'}${project(p).map((v) => v.toFixed(1)).join(',')}`).join('') + 'Z',
@@ -38,7 +67,7 @@ export default function Projects() {
   const focused = projects.items[focus]
 
   return (
-    <section id="projects" className="section section--projects">
+    <section id="projects" ref={sectionRef} className="section section--projects">
       <div className="container">
         <SectionHead
           code="JZ-03"
@@ -52,10 +81,12 @@ export default function Projects() {
                   type="button"
                   className={`chip ${filter === f ? 'is-active' : ''}`}
                   aria-pressed={filter === f}
-                  onClick={() => {
-                    setFilter(f)
-                    setHover(null)
-                  }}
+                  onClick={() =>
+                    withFlip(() => {
+                      setFilter(f)
+                      setHover(null)
+                    })
+                  }
                 >
                   {f}
                 </button>
@@ -117,7 +148,7 @@ export default function Projects() {
             )}
           </Reveal>
 
-          <ul className="gallery">
+          <ul className="gallery" ref={galleryRef}>
             {projects.items.map((p, i) => (
               <li
                 key={p.caption}
@@ -139,12 +170,12 @@ export default function Projects() {
 
         <div className="section-cta">
           {hiddenCount > 0 ? (
-            <button type="button" className="btn btn--ghost" onClick={() => setShowAll(true)}>
+            <button type="button" className="btn btn--ghost" onClick={() => withFlip(() => setShowAll(true))}>
               {projects.cta} <span className="mono muted">+{hiddenCount}</span> <Arrow />
             </button>
           ) : (
             showAll && (
-              <button type="button" className="btn btn--ghost" onClick={() => setShowAll(false)}>
+              <button type="button" className="btn btn--ghost" onClick={() => withFlip(() => setShowAll(false))}>
                 Show fewer
               </button>
             )

@@ -1,5 +1,6 @@
 import { services } from '../data/content'
-import Reveal from './Reveal'
+import { useRef } from 'react'
+import Reveal, { useParallax } from './Reveal'
 import SectionHead from './SectionHead'
 import { Arrow } from './Graphics'
 
@@ -7,8 +8,10 @@ const pad = (n) => String(n).padStart(2, '0')
 
 export default function Services({ onPick }) {
   const total = services.items.length
+  const ref = useRef(null)
+  useParallax(ref, '.service-card__media img', 7)
   return (
-    <section id="services" className="section">
+    <section id="services" ref={ref} className="section">
       <div className="container">
         <SectionHead code="JZ-02" eyebrow="Services" title={services.headline}>
           {services.supporting}

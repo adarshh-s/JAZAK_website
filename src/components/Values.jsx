@@ -1,15 +1,17 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { values } from '../data/content'
-import Reveal, { Rule } from './Reveal'
+import Reveal, { Rule, useParallax } from './Reveal'
 import SectionHead from './SectionHead'
 import { Arrow, Diamond } from './Graphics'
 
 export default function Values() {
   const { chairman } = values
   const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  useParallax(ref, '.portrait-frame img', 5)
 
   return (
-    <section id="values" className="section">
+    <section id="values" ref={ref} className="section">
       <div className="container">
         <SectionHead code="JZ-06" eyebrow="Values · Chairman" title={values.headline}>
           {values.supporting}
@@ -28,7 +30,9 @@ export default function Values() {
         <div className="chairman">
           <Reveal className="chairman__portrait">
             <div className="portrait-frame">
-              <img src={chairman.photo} alt={`${chairman.name}, ${chairman.role}`} loading="lazy" />
+              <span className="portrait-frame__img">
+                <img src={chairman.photo} alt={`${chairman.name}, ${chairman.role}`} loading="lazy" />
+              </span>
               <span className="dim dim--h mono" aria-hidden="true">
                 <span>Chairman</span>
               </span>
