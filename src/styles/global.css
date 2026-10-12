@@ -433,9 +433,17 @@ textarea {
 .nav--open .nav__toggle span:last-child {
   transform: translateY(-3px) rotate(-45deg);
 }
+/* Anchored to the header rather than the viewport: the open nav's
+   backdrop-filter makes it the containing block for fixed children. */
 .nav__sheet {
-  position: fixed;
-  inset: var(--nav-h) 0 0;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: calc(100vh - var(--nav-h));
+  height: calc(100dvh - var(--nav-h));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--bg);
   padding: 24px var(--gutter);
   display: flex;
