@@ -1,4 +1,5 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { projects } from '../data/content'
 import Reveal, { useParallax } from './Reveal'
 import { Flip, gsap, ScrollTrigger, reducedMotion } from '../motion/gsap'
@@ -20,10 +21,13 @@ const K = 420
 const project = ([lon, lat]) => [(lon - 50.2) * K * 0.906, (26.3 - lat) * K]
 const DOHA = project([51.531, 25.2854])
 
-export default function Projects() {
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
+
+// `compact` (homepage) shows a selection and links to /projects for the rest.
+export default function Projects({ compact = false }) {
   const [filter, setFilter] = useState('All')
   const [hover, setHover] = useState(null)
-  const [showAll, setShowAll] = useState(false)
+  const showAll = !compact
   const LIMIT = 7
   const sectionRef = useRef(null)
   const galleryRef = useRef(null)
@@ -39,7 +43,7 @@ export default function Projects() {
     update()
   }
 
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     const state = flipState.current
     if (!state) return
     flipState.current = null
@@ -52,7 +56,7 @@ export default function Projects() {
         gsap.fromTo(els, { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.06, delay: 0.15 }),
       onComplete: () => ScrollTrigger.refresh(),
     })
-  }, [filter, showAll])
+  }, [filter])
 
   const coast = useMemo(
     () => QATAR.map((p, i) => `${i ? 'L' : 'M'}${project(p).map((v) => v.toFixed(1)).join(',')}`).join('') + 'Z',
@@ -169,16 +173,11 @@ export default function Projects() {
         </div>
 
         <div className="section-cta">
-          {hiddenCount > 0 ? (
-            <button type="button" className="btn btn--ghost" onClick={() => withFlip(() => setShowAll(true))}>
-              {projects.cta} <span className="mono muted">+{hiddenCount}</span> <Arrow />
-            </button>
-          ) : (
-            showAll && (
-              <button type="button" className="btn btn--ghost" onClick={() => withFlip(() => setShowAll(false))}>
-                Show fewer
-              </button>
-            )
+          {compact && (
+            <Link to="/projects" className="btn btn--ghost">
+              {projects.cta}
+              {hiddenCount > 0 && <span className="mono muted">+{hiddenCount}</span>} <Arrow />
+            </Link>
           )}
         </div>
       </div>

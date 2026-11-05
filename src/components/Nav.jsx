@@ -2,14 +2,22 @@ import { useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { ScrollTrigger, reducedMotion } from '../motion/gsap'
 import { useLenis } from '../motion/SmoothScroll'
-import { nav } from '../data/content'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+import { navRoutes } from '../data/routes'
 import mark from '../assets/jazak-mark.png'
 
 const STORAGE_KEY = 'jazak-theme'
 
 function useTheme() {
-  const [theme, setTheme] = useState(() => document.documentElement.dataset.theme || 'dark')
+  // Starts unknown so server and client render the same markup; the saved
+  // theme (already applied by the inline script in index.html) is read on mount.
+  const [stored, setTheme] = useState(null)
+  const theme = stored ?? 'dark'
   useEffect(() => {
+    setTheme(document.documentElement.dataset.theme || 'dark')
+  }, [])
+  useEffect(() => {
+    if (!stored) return
     document.documentElement.dataset.theme = theme
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#F4F1EC' : '#0F0E0E')
     try {
@@ -17,7 +25,7 @@ function useTheme() {
     } catch {
       // Storage can be blocked; the theme still applies for this visit.
     }
-  }, [theme])
+  }, [stored, theme])
   const toggle = (e) => {
     const next = theme === 'light' ? 'dark' : 'light'
     if (!document.startViewTransition || reducedMotion()) {
@@ -69,7 +77,7 @@ function ThemeToggle({ theme, onToggle }) {
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
-  const [active, setActive] = useState('')
+  const { pathname } = useLocation()
   const [theme, toggleTheme] = useTheme()
   const [hidden, setHidden] = useState(false)
   const lenis = useLenis()
@@ -97,20 +105,7 @@ export default function Nav() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  useEffect(() => {
-    const ids = nav.map((n) => n.href.slice(1))
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => e.isIntersecting && setActive(e.target.id))
-      },
-      { rootMargin: '-45% 0px -50% 0px' },
-    )
-    ids.forEach((id) => {
-      const el = document.getElementById(id)
-      if (el) io.observe(el)
-    })
-    return () => io.disconnect()
-  }, [])
+  useEffect(() => setOpen(false), [pathname])
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
@@ -121,29 +116,29 @@ export default function Nav() {
   return (
     <header className={`nav ${scrolled ? 'nav--solid' : ''} ${open ? 'nav--open' : ''} ${hidden ? 'nav--hidden' : ''}`}>
       <div className="nav__inner container">
-        <a href="#top" className="brand" aria-label="JAZAK, back to top" onClick={() => setOpen(false)}>
+        <Link
+          to="/"
+          className="brand"
+          aria-label="JAZAK home"
+          onClick={() => pathname === '/' && (lenis ? lenis.scrollTo(0) : window.scrollTo({ top: 0, behavior: 'smooth' }))}
+        >
           <img src={mark} alt="" width="32" height="32" />
           <span className="brand__word">JAZAK</span>
-        </a>
+        </Link>
 
         <nav className="nav__links" aria-label="Primary">
-          {nav.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className={active === item.href.slice(1) ? 'is-active' : ''}
-              onClick={() => setOpen(false)}
-            >
-              {item.label}
-            </a>
+          {navRoutes.map((r) => (
+            <NavLink key={r.path} to={r.path} className={({ isActive }) => (isActive ? 'is-active' : '')}>
+              {r.label}
+            </NavLink>
           ))}
         </nav>
 
         <ThemeToggle theme={theme} onToggle={toggleTheme} />
 
-        <a href="#contact" className="btn btn--primary btn--sm nav__cta" onClick={() => setOpen(false)}>
+        <Link to="/contact" className="btn btn--primary btn--sm nav__cta">
           Get a quote
-        </a>
+        </Link>
 
         <button
           type="button"
@@ -159,15 +154,15 @@ export default function Nav() {
       </div>
 
       <div id="mobile-menu" className="nav__sheet" hidden={!open}>
-        {nav.map((item, i) => (
-          <a key={item.href} href={item.href} onClick={() => setOpen(false)}>
+        {navRoutes.map((r, i) => (
+          <NavLink key={r.path} to={r.path} onClick={() => setOpen(false)}>
             <span className="mono">0{i + 1}</span>
-            {item.label}
-          </a>
+            {r.label}
+          </NavLink>
         ))}
-        <a href="#contact" className="btn btn--primary" onClick={() => setOpen(false)}>
+        <Link to="/contact" className="btn btn--primary" onClick={() => setOpen(false)}>
           Request a quotation
-        </a>
+        </Link>
       </div>
     </header>
   )

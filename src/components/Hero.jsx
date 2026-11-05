@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { hero } from '../data/content'
-import { Arrow, Contours, Diamond, SawtoothRing } from './Graphics'
+import { Arrow, Diamond } from './Graphics'
 import { gsap, useGSAP, reducedMotion } from '../motion/gsap'
-import mark from '../assets/jazak-mark.png'
 
 const FILM = '/media/hero-film.mp4'
 const POSTER = '/media/hero-poster.jpg'
@@ -31,14 +30,13 @@ export default function Hero() {
         .from('.hero__title .line > span', { yPercent: 108, duration: 1.4, stagger: 0.14 }, 0.3)
         .from('.hero__foot', { autoAlpha: 0, y: 24, duration: 1.1 }, 1.0)
         .from('.hero__foot', { '--rule': 0, duration: 1.4 }, 1.0)
-        .from('.hero__badge', { autoAlpha: 0, scale: 0.8, rotate: -40, duration: 1.4 }, 1.1)
         .from('.hero__bar', { autoAlpha: 0, duration: 1 }, 1.4)
 
       // Scrolling away: the film pushes in and dims; text fades in place (no text parallax).
       const st = { trigger: rootRef.current, start: 'top top', end: 'bottom top', scrub: true }
       gsap.to('.hero__media', { scale: 1.12, ease: 'none', scrollTrigger: st })
       gsap.to('.hero__shade', { opacity: 1, backgroundColor: 'rgba(15,14,14,0.55)', ease: 'none', scrollTrigger: st })
-      gsap.to(['.hero__body', '.hero__bar', '.hero__badge'], {
+      gsap.to(['.hero__body', '.hero__bar'], {
         autoAlpha: 0,
         ease: 'none',
         scrollTrigger: { ...st, end: '60% top' },
@@ -74,8 +72,6 @@ export default function Hero() {
           preload="auto"
         />
         <div className="hero__shade" />
-        <Contours className="hero__contours" seed={21} hills={8} live />
-        <div className="hero__grid" />
       </div>
 
       <div className="hero__body container">
@@ -92,7 +88,7 @@ export default function Hero() {
         <div className="hero__foot">
           <p className="hero__lede">{hero.supporting}</p>
           <div className="hero__actions">
-            <a href="#contact" className="btn btn--primary">
+            <a href="#quote" className="btn btn--primary">
               {hero.cta} <Arrow />
             </a>
             <span className="mono hero__caption">
@@ -100,11 +96,6 @@ export default function Hero() {
             </span>
           </div>
         </div>
-      </div>
-
-      <div className="hero__badge" aria-hidden="true">
-        <SawtoothRing size={132} className="spin" />
-        <img src={mark} alt="" width="54" height="54" />
       </div>
 
       <div className="hero__bar container">

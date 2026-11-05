@@ -26,7 +26,7 @@ export default function Services({ onPick }) {
               delay={(i % 4) * 90}
             >
               <a
-                href="#contact"
+                href="#quote"
                 className="service-card__link"
                 onClick={() => onPick({ service: s.title })}
                 aria-label={`${s.title}: request a quotation`}
@@ -53,7 +53,7 @@ export default function Services({ onPick }) {
             <p className="service-card__cta-text">
               Scope, schedule and supply, coordinated by one contractor from the first survey to handover.
             </p>
-            <a href="#contact" className="btn btn--primary">
+            <a href="#quote" className="btn btn--primary">
               {services.cta} <Arrow />
             </a>
           </Reveal>

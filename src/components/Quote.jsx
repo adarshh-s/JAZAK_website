@@ -6,7 +6,7 @@ import { Arrow } from './Graphics'
 
 const empty = { name: '', company: '', phone: '', email: '', service: '', location: '', details: '' }
 
-export default function Quote({ prefill }) {
+export default function Quote({ prefill, head = true }) {
   const [form, setForm] = useState(empty)
   const [errors, setErrors] = useState({})
   const [sent, setSent] = useState(false)
@@ -65,11 +65,13 @@ export default function Quote({ prefill }) {
   )
 
   return (
-    <section id="contact" className="section section--contact">
+    <section id="quote" className={`section section--contact ${head ? '' : 'section--flush'}`}>
       <div className="container">
-        <SectionHead code="JZ-07" eyebrow="Quote · Contact" title={quote.headline}>
-          {quote.supporting}
-        </SectionHead>
+        {head && (
+          <SectionHead code="JZ-07" eyebrow="Quote · Contact" title={quote.headline}>
+            {quote.supporting}
+          </SectionHead>
+        )}
 
         <div className="contact-layout">
           <Reveal as="form" className="quote-form" onSubmit={onSubmit} noValidate>

@@ -8,7 +8,7 @@ export default function IntegratedLine() {
   const boardRef = useRef(null)
   const factsRef = useRef(null)
   const stages = integrated.stages
-  const [reached, setReached] = useState(reducedMotion() ? stages.length : 1)
+  const [reached, setReached] = useState(1)
   const [eyebrowCode, ...rest] = integrated.eyebrow.split(' · ')
 
   useGSAP(
@@ -16,6 +16,7 @@ export default function IntegratedLine() {
       const line = boardRef.current.querySelector('.iline')
       if (reducedMotion()) {
         gsap.set(line, { '--p': 1 })
+        setReached(stages.length)
         return
       }
       // The red line is scrubbed by scroll and lights each stage as it arrives.

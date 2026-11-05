@@ -31,14 +31,6 @@ export const contact = {
   plate: { zone: '19', street: '200', building: '415', unit: '3, Box Park, Doha' },
 }
 
-export const nav = [
-  { label: 'Services', href: '#services' },
-  { label: 'Projects', href: '#projects' },
-  { label: 'Materials', href: '#materials' },
-  { label: 'About', href: '#about' },
-  { label: 'Contact', href: '#contact' },
-]
-
 export const hero = {
   headline: ['Where vision', 'meets', 'structure.'],
   supporting:
