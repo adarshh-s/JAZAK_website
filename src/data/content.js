@@ -25,8 +25,8 @@ export const contact = {
   phoneHref: 'tel:+97433663100',
   email: 'info@jazak.qa',
   web: 'www.jazak.qa',
-  // TODO: WhatsApp number not yet confirmed by the client.
-  whatsapp: null,
+  // TODO: confirm the WhatsApp number with the client (using the office line for now).
+  whatsapp: '+974 3366 3100',
   address: 'Unit 3, Box Park, Zone 19, Street 200, Building 415, Doha, Qatar',
   plate: { zone: '19', street: '200', building: '415', unit: '3, Box Park, Doha' },
 }

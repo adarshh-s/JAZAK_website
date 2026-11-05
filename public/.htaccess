@@ -1,0 +1,8 @@
+# Apache (Hostinger) settings for the static build.
+ErrorDocument 404 /404.html
+DirectoryIndex index.html index.php
+
+# Force HTTPS
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
