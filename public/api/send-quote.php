@@ -9,8 +9,8 @@
  *                Hostinger only delivers PHP mail reliably when the sender is
  *                on a domain hosted in the same account.
  */
-const TO_EMAIL   = '';            // e.g. 'info@jazak.qa'
-const FROM_EMAIL = '';            // e.g. 'no-reply@jazak.qa'
+const TO_EMAIL   = 'info@jazak.qa';
+const FROM_EMAIL = 'info@jazak.qa';
 const FROM_NAME  = 'JAZAK Website';
 
 header('Content-Type: application/json; charset=utf-8');
